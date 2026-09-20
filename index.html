@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GameVault</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      background: #0b0b0f;
+      color: white;
+      min-height: 100vh;
+    }
+
+    /* NAVBAR */
+
+    nav {
+      height: 70px;
+      background: #111116;
+      border-bottom: 1px solid #24242c;
+      display: flex;
+      align-items: center;
+      padding: 0 35px;
+      gap: 30px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      font-size: 25px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      color: #7c5cff;
+      cursor: pointer;
+    }
+
+    .logo span {
+      color: white;
+    }
+
+    .search {
+      flex: 1;
+      max-width: 500px;
+      position: relative;
+    }
+
+    .search input {
+      width: 100%;
+      background: #1a1a21;
+      border: 1px solid #292933;
+      border-radius: 12px;
+      padding: 13px 18px;
+      color: white;
+      outline: none;
+      font-size: 15px;
+    }
+
+    .search input:focus {
+      border-color: #7c5cff;
+    }
+
+    .nav-button {
+      background: #7c5cff;
+      border: none;
+      color: white;
+      padding: 11px 18px;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    /* HERO */
+
+    .hero {
+      padding: 65px 8%;
+      background:
+        radial-gradient(circle at 80% 40%, #302060 0%, transparent 35%),
+        radial-gradient(circle at 20% 20%, #171b3c 0%, transparent 30%);
+    }
+
+    .hero h1 {
+      font-size: clamp(42px, 6vw, 72px);
+      max-width: 750px;
+      line-height: 0.98;
+      letter-spacing: -3px;
+    }
+
+    .hero h1 span {
+      color: #7c5cff;
+    }
+
+    .hero p {
+      margin-top: 20px;
+      color: #a7a7b1;
+      font-size: 18px;
+      max-width: 600px;
+      line-height: 1.6;
+    }
+
+    .hero-button {
+      margin-top: 28px;
+      background: white;
+      color: #111;
+      border: none;
+      padding: 14px 24px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    /* CONTENT */
+
+    .content {
+      padding: 35px 8%;
+    }
+
+    .section-title {
+      font-size: 25px;
+      margin-bottom: 20px;
+    }
+
+    .categories {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 35px;
+    }
+
+    .category {
+      background: #17171e;
+      border: 1px solid #292933;
+      color: #c5c5cd;
+      padding: 9px 15px;
+      border-radius: 9px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .category:hover,
+    .category.active {
+      background: #7c5cff;
+      color: white;
+      border-color: #7c5cff;
+    }
+
+    /* GAME GRID */
+
+    .games {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 18px;
+    }
+
+    .game-card {
+      background: #141419;
+      border: 1px solid #24242d;
+      border-radius: 15px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .game-card:hover {
+      transform: translateY(-5px);
+      border-color: #7c5cff;
+    }
+
+    .thumbnail {
+      height: 140px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 55px;
+      background: linear-gradient(135deg, #242040, #151525);
+    }
+
+    .game-info {
+      padding: 15px;
+    }
+
+    .game-info h3 {
+      font-size: 17px;
+      margin-bottom: 6px;
+    }
+
+    .game-info p {
+      color: #85858e;
+      font-size: 13px;
+    }
+
+    /* GAME SCREEN */
+
+    #gameScreen {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #08080c;
+      z-index: 200;
+      padding: 30px;
+      overflow-y: auto;
+    }
+
+    .game-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+    }
+
+    .back-button {
+      background: #1b1b23;
+      color: white;
+      border: 1px solid #2c2c36;
+      padding: 10px 16px;
+      border-radius: 9px;
+      cursor: pointer;
+    }
+
+    .game-container {
+      max-width: 850px;
+      margin: auto;
+      text-align: center;
+    }
+
+    #clickGame {
+      background: #141419;
+      border: 1px solid #292933;
+      border-radius: 20px;
+      padding: 60px 20px;
+      margin-top: 30px;
+    }
+
+    #clickButton {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      border: none;
+      background: #7c5cff;
+      color: white;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 0 50px rgba(124, 92, 255, 0.25);
+      transition: transform 0.08s;
+    }
+
+    #clickButton:active {
+      transform: scale(0.92);
+    }
+
+    #score {
+      font-size: 40px;
+      margin-bottom: 25px;
+    }
+
+    /* NO RESULTS */
+
+    .no-results {
+      color: #777780;
+      padding: 30px 0;
+      font-size: 17px;
+    }
+
+    @media (max-width: 700px) {
+      nav {
+        padding: 0 15px;
+        gap: 12px;
+      }
+
+      .nav-button {
+        display: none;
+      }
+
+      .hero {
+        padding: 50px 20px;
+      }
+
+      .content {
+        padding: 30px 20px;
+      }
+
+      .hero h1 {
+        letter-spacing: -2px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- NAVIGATION -->
+
+  <nav>
+    <div class="logo">Game<span>Vault</span></div>
+
+    <div class="search">
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="Search games..."
+        oninput="searchGames()"
+      >
+    </div>
+
+    <button class="nav-button" onclick="scrollToGames()">
+      Browse Games
+    </button>
+  </nav>
+
+
+  <!-- HERO -->
+
+  <section class="hero">
+    <h1>
+      Play games.<br>
+      <span>Anywhere.</span>
+    </h1>
+
+    <p>
+      A clean home for browser games. No downloads, no complicated setup —
+      just pick a game and play.
+    </p>
+
+    <button class="hero-button" onclick="scrollToGames()">
+      Explore Games →
+    </button>
+  </section>
+
+
+  <!-- GAMES -->
+
+  <main class="content" id="gamesSection">
+
+    <h2 class="section-title">Categories</h2>
+
+    <div class="categories">
+      <button class="category active" onclick="filterCategory('all', this)">
+        All
+      </button>
+
+      <button class="category" onclick="filterCategory('arcade', this)">
+        Arcade
+      </button>
+
+      <button class="category" onclick="filterCategory('casual', this)">
+        Casual
+      </button>
+
+      <button class="category" onclick="filterCategory('puzzle', this)">
+        Puzzle
+      </button>
+    </div>
+
+
+    <h2 class="section-title">Featured Games</h2>
+
+    <div class="games" id="gameGrid">
+
+      <div class="game-card"
+           data-name="Click Rush"
+           data-category="arcade"
+           onclick="openClickGame()">
+
+        <div class="thumbnail">⚡</div>
+
+        <div class="game-info">
+          <h3>Click Rush</h3>
+          <p>Arcade • 30 second challenge</p>
+        </div>
+
+      </div>
+
+
+      <div class="game-card"
+           data-name="Space Blaster"
+           data-category="arcade">
+
+        <div class="thumbnail">🚀</div>
+
+        <div class="game-info">
+          <h3>Space Blaster</h3>
+          <p>Arcade • Coming soon</p>
+        </div>
+
+      </div>
+
+
+      <div class="game-card"
+           data-name="2048"
+           data-category="puzzle">
+
+        <div class="thumbnail">🔢</div>
+
+        <div class="game-info">
+          <h3>2048</h3>
+          <p>Puzzle • Coming soon</p>
+        </div>
+
+      </div>
+
+
+      <div class="game-card"
+           data-name="Memory"
+           data-category="casual">
+
+        <div class="thumbnail">🧠</div>
+
+        <div class="game-info">
+          <h3>Memory</h3>
+          <p>Casual • Coming soon</p>
+        </div>
+
+      </div>
+
+
+      <div class="game-card"
+           data-name="Snake"
+           data-category="arcade">
+
+        <div class="thumbnail">🐍</div>
+
+        <div class="game-info">
+          <h3>Snake</h3>
+          <p>Arcade • Coming soon</p>
+        </div>
+
+      </div>
+
+
+      <div class="game-card"
+           data-name="Chess"
+           data-category="casual">
+
+        <div class="thumbnail">♟️</div>
+
+        <div class="game-info">
+          <h3>Chess</h3>
+          <p>Casual • Coming soon</p>
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="no-results" id="noResults" style="display:none;">
+      No games found.
+    </div>
+
+  </main>
+
+
+  <!-- CLICK RUSH GAME -->
+
+  <section id="gameScreen">
+
+    <div class="game-header">
+
+      <button class="back-button" onclick="closeGame()">
+        ← Back
+      </button>
+
+      <h2>Click Rush</h2>
+
+      <div></div>
+
+    </div>
+
+    <div class="game-container">
+
+      <div id="clickGame">
+
+        <h2 id="score">0</h2>
+
+        <p style="color:#888; margin-bottom:25px;">
+          Click as many times as you can in 30 seconds.
+        </p>
+
+        <button id="clickButton" onclick="clickTarget()">
+          START
+        </button>
+
+        <p id="timer"
+           style="margin-top:25px; color:#888;">
+          Ready?
+        </p>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <script>
+
+    /* SCROLL */
+
+    function scrollToGames() {
+      document.getElementById("gamesSection")
+        .scrollIntoView({ behavior: "smooth" });
+    }
+
+
+    /* SEARCH */
+
+    function searchGames() {
+
+      const search =
+        document.getElementById("searchInput")
+        .value
+        .toLowerCase();
+
+      const cards =
+        document.querySelectorAll(".game-card");
+
+      let found = false;
+
+      cards.forEach(card => {
+
+        const name =
+          card.dataset.name.toLowerCase();
+
+        if (name.includes(search)) {
+          card.style.display = "block";
+          found = true;
+        } else {
+          card.style.display = "none";
+        }
+
+      });
+
+      document.getElementById("noResults").style.display =
+        found ? "none" : "block";
+    }
+
+
+    /* CATEGORY FILTER */
+
+    function filterCategory(category, button) {
+
+      document
+        .querySelectorAll(".category")
+        .forEach(btn => btn.classList.remove("active"));
+
+      button.classList.add("active");
+
+      const cards =
+        document.querySelectorAll(".game-card");
+
+      let found = false;
+
+      cards.forEach(card => {
+
+        if (
+          category === "all" ||
+          card.dataset.category === category
+        ) {
+
+          card.style.display = "block";
+          found = true;
+
+        } else {
+
+          card.style.display = "none";
+
+        }
+
+      });
+
+      document.getElementById("noResults").style.display =
+        found ? "none" : "block";
+    }
+
+
+    /* CLICK RUSH */
+
+    let score = 0;
+    let time = 30;
+    let playing = false;
+    let timerInterval;
+
+
+    function openClickGame() {
+
+      document.getElementById("gameScreen")
+        .style.display = "block";
+
+      resetGame();
+
+    }
+
+
+    function closeGame() {
+
+      document.getElementById("gameScreen")
+        .style.display = "none";
+
+      clearInterval(timerInterval);
+
+    }
+
+
+    function resetGame() {
+
+      score = 0;
+      time = 30;
+      playing = false;
+
+      document.getElementById("score")
+        .textContent = "0";
+
+      document.getElementById("timer")
+        .textContent = "Ready?";
+
+      document.getElementById("clickButton")
+        .textContent = "START";
+
+    }
+
+
+    function clickTarget() {
+
+      if (!playing) {
+
+        playing = true;
+        score = 0;
+        time = 30;
+
+        document.getElementById("clickButton")
+          .textContent = "CLICK!";
+
+        timerInterval = setInterval(() => {
+
+          time--;
+
+          document.getElementById("timer")
+            .textContent = time + " seconds";
+
+          if (time <= 0) {
+
+            clearInterval(timerInterval);
+            playing = false;
+
+            document.getElementById("clickButton")
+              .textContent = "PLAY AGAIN";
+
+            document.getElementById("timer")
+              .textContent =
+              "Game over! Score: " + score;
+
+          }
+
+        }, 1000);
+
+      }
+
+      if (playing) {
+
+        score++;
+
+        document.getElementById("score")
+          .textContent = score;
+
+      }
+
+    }
+
+  </script>
+
+</body>
+</html>
