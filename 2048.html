@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>2048 - GameVault</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+    background: #0b0b0f;
+    color: white;
+    min-height: 100vh;
+    text-align: center;
+}
+
+/* HEADER */
+
+header {
+    height: 70px;
+    background: #111116;
+    border-bottom: 1px solid #24242c;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 35px;
+}
+
+.logo {
+    color: #7c5cff;
+    font-size: 24px;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.back {
+    color: #aaa;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.back:hover {
+    color: white;
+}
+
+/* GAME AREA */
+
+.game {
+    width: 460px;
+    max-width: 92vw;
+    margin: 40px auto;
+}
+
+.title {
+    font-size: 48px;
+    font-weight: 900;
+    margin-bottom: 20px;
+}
+
+/* SCORE */
+
+.top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.score-box {
+    background: #191920;
+    border: 1px solid #292933;
+    border-radius: 10px;
+
+    padding: 10px 18px;
+    min-width: 95px;
+}
+
+.score-label {
+    color: #888;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+#score,
+#best {
+    font-size: 22px;
+    font-weight: bold;
+    margin-top: 3px;
+}
+
+.new-game {
+    background: #7c5cff;
+    color: white;
+
+    border: none;
+    border-radius: 10px;
+
+    padding: 12px 18px;
+
+    font-weight: bold;
+    font-size: 15px;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.15s,
+        opacity 0.15s;
+}
+
+.new-game:hover {
+    transform: translateY(-2px);
+}
+
+.new-game:active {
+    transform: scale(0.96);
+}
+
+/* BOARD */
+
+.board {
+    position: relative;
+
+    width: 100%;
+    aspect-ratio: 1 / 1;
+
+    padding: 10px;
+
+    display: grid;
+
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+
+    gap: 10px;
+
+    background: #17171e;
+
+    border: 1px solid #292933;
+
+    border-radius: 16px;
+
+    touch-action: none;
+}
+
+/* EMPTY CELLS */
+
+.cell {
+    width: 100%;
+    height: 100%;
+
+    background: #202027;
+
+    border-radius: 10px;
+}
+
+/* TILE LAYER */
+
+.tiles {
+    position: absolute;
+
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+
+    pointer-events: none;
+}
+
+/* ACTUAL TILES */
+
+.tile {
+    position: absolute;
+
+    width: calc((100% - 30px) / 4);
+    height: calc((100% - 30px) / 4);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    border-radius: 10px;
+
+    font-size: clamp(22px, 7vw, 38px);
+    font-weight: 900;
+
+    transition:
+        transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1);
+
+    will-change: transform;
+}
+
+/* SPAWN */
+
+.tile.spawn {
+    animation: spawn 0.16s ease-out forwards;
+}
+
+@keyframes spawn {
+
+    0% {
+        transform: scale(0);
+    }
+
+    70% {
+        transform: scale(1.12);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+
+}
+
+/* MERGE */
+
+.tile.merge {
+    animation: merge 0.16s ease-out;
+}
+
+@keyframes merge {
+
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.13);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+
+}
+
+/* TILE COLORS */
+
+.tile-2 {
+    background: #eee4da;
+    color: #555;
+}
+
+.tile-4 {
+    background: #ede0c8;
+    color: #555;
+}
+
+.tile-8 {
+    background: #f2b179;
+    color: white;
+}
+
+.tile-16 {
+    background: #f59563;
+    color: white;
+}
+
+.tile-32 {
+    background: #f67c5f;
+    color: white;
+}
+
+.tile-64 {
+    background: #f65e3b;
+    color: white;
+}
+
+.tile-128 {
+    background: #edcf72;
+    color: white;
+    font-size: 32px;
+}
+
+.tile-256 {
+    background: #edcc61;
+    color: white;
+    font-size: 32px;
+}
+
+.tile-512 {
+    background: #edc850;
+    color: white;
+    font-size: 32px;
+}
+
+.tile-1024 {
+    background: #edc53f;
+    color: white;
+    font-size: 27px;
+}
+
+.tile-2048 {
+    background: #7c5cff;
+    color: white;
+    font-size: 27px;
+
+    box-shadow:
+        0 0 25px rgba(124, 92, 255, 0.5);
+}
+
+/* INFO */
+
+.info {
+    color: #777780;
+
+    margin-top: 18px;
+
+    font-size: 14px;
+
+    line-height: 1.6;
+}
+
+/* WIN / GAME OVER */
+
+.message {
+    position: fixed;
+
+    inset: 0;
+
+    background: rgba(0, 0, 0, 0.75);
+
+    display: none;
+
+    justify-content: center;
+    align-items: center;
+
+    z-index: 10;
+}
+
+.message-box {
+    background: #15151c;
+
+    border: 1px solid #292933;
+
+    border-radius: 18px;
+
+    padding: 35px;
+
+    width: 320px;
+
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.message-box h2 {
+    font-size: 32px;
+    margin-bottom: 10px;
+}
+
+.message-box p {
+    color: #aaa;
+    margin-bottom: 20px;
+}
+
+.message-box button {
+    background: #7c5cff;
+    color: white;
+
+    border: none;
+    border-radius: 10px;
+
+    padding: 12px 20px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+/* MOBILE */
+
+@media (max-width: 600px) {
+
+    header {
+        padding: 0 15px;
+    }
+
+    .game {
+        margin-top: 25px;
+    }
+
+    .title {
+        font-size: 42px;
+    }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+
+<a href="index.html" class="logo">
+GameVault
+</a>
+
+<a href="index.html" class="back">
+← Back to GameVault
+</a>
+
+</header>
+
+
+<div class="game">
+
+<h1 class="title">
+2048
+</h1>
+
+
+<div class="top">
+
+<div class="score-box">
+
+<div class="score-label">
+Score
+</div>
+
+<div id="score">
+0
+</div>
+
+</div>
+
+
+<div class="score-box">
+
+<div class="score-label">
+Best
+</div>
+
+<div id="best">
+0
+</div>
+
+</div>
+
+
+<button class="new-game" onclick="newGame()">
+New Game
+</button>
+
+</div>
+
+
+<div class="board" id="board">
+
+<div class="cell"></div>
+<div class="cell"></div>
+<div class="cell"></div>
+<div class="cell"></div>
+
+<div class="cell"></div>
+<div class="cell"></div>
+<div class="cell"></div>
+<div class="cell"></div>
+
+<div class="cell"></div>
+<div class="cell"></div>
+<div class="cell"></div>
+<div class="cell"></div>
+
+<div class="cell"></div>
+<div class="cell"></div>
+<div class="cell"></div>
+<div class="cell"></div>
+
+<div class="tiles" id="tiles"></div>
+
+</div>
+
+
+<div class="info">
+
+Use <b>arrow keys</b> or <b>WASD</b> to move.
+
+<br>
+
+On mobile, swipe in any direction.
+
+</div>
+
+</div>
+
+
+<div class="message" id="message">
+
+<div class="message-box">
+
+<h2 id="messageTitle">
+You Win! 🎉
+</h2>
+
+<p id="messageText">
+You reached 2048!
+</p>
+
+<button onclick="newGame()">
+Play Again
+</button>
+
+</div>
+
+</div>
+
+
+<script>
+
+/* =========================
+   GAME VARIABLES
+========================= */
+
+let board = [];
+
+let score = 0;
+
+let best =
+    Number(localStorage.getItem("gamevault2048Best")) || 0;
+
+let nextId = 1;
+
+let gameEnded = false;
+
+let won = false;
+
+let tileElements = new Map();
+
+
+/* =========================
+   ELEMENTS
+========================= */
+
+const boardElement =
+    document.getElementById("board");
+
+const tilesElement =
+    document.getElementById("tiles");
+
+
+/* =========================
+   SCORE
+========================= */
+
+document.getElementById("best")
+    .textContent = best;
+
+
+/* =========================
+   TILE POSITION
+========================= */
+
+function getPosition(index) {
+
+    const row =
+        Math.floor(index / 4);
+
+    const col =
+        index % 4;
+
+    return {
+        x: `calc(${col} * ((100% - 30px) / 4 + 10px))`,
+        y: `calc(${row} * ((100% - 30px) / 4 + 10px))`
+    };
+
+}
+
+
+/* =========================
+   CREATE TILE ELEMENT
+========================= */
+
+function createTile(tile, index, spawn = false) {
+
+    const element =
+        document.createElement("div");
+
+    element.className =
+        "tile tile-" + tile.value;
+
+    element.textContent =
+        tile.value;
+
+    const position =
+        getPosition(index);
+
+    element.style.left =
+        position.x;
+
+    element.style.top =
+        position.y;
+
+    element.style.transform =
+        "translate(0, 0)";
+
+    if (spawn) {
+
+        element.classList.add("spawn");
+
+    }
+
+    tilesElement.appendChild(element);
+
+    tileElements.set(
+        tile.id,
+        element
+    );
+
+    return element;
+
+}
+
+
+/* =========================
+   UPDATE TILE
+========================= */
+
+function updateTileElement(
+    tile,
+    index
+) {
+
+    let element =
+        tileElements.get(tile.id);
+
+    if (!element) {
+
+        element =
+            createTile(
+                tile,
+                index
+            );
+
+        return;
+
+    }
+
+    element.className =
+        "tile tile-" + tile.value;
+
+    element.textContent =
+        tile.value;
+
+    const position =
+        getPosition(index);
+
+    element.style.left =
+        position.x;
+
+    element.style.top =
+        position.y;
+
+}
+
+
+/* =========================
+   NEW GAME
+========================= */
+
+function newGame() {
+
+    board =
+        Array(16).fill(null);
+
+    score = 0;
+
+    gameEnded = false;
+
+    won = false;
+
+    nextId = 1;
+
+    tileElements.forEach(
+        element => element.remove()
+    );
+
+    tileElements.clear();
+
+    document.getElementById("message")
+        .style.display = "none";
+
+    addTile(true);
+    addTile(true);
+
+    renderInstant();
+
+}
+
+
+/* =========================
+   ADD TILE
+========================= */
+
+function addTile(spawn = false) {
+
+    const empty = [];
+
+    for (let i = 0; i < 16; i++) {
+
+        if (board[i] === null) {
+
+            empty.push(i);
+
+        }
+
+    }
+
+    if (empty.length === 0) {
+
+        return null;
+
+    }
+
+    const index =
+        empty[
+            Math.floor(
+                Math.random() * empty.length
+            )
+        ];
+
+    const tile = {
+
+        id: nextId++,
+
+        value:
+            Math.random() < 0.9
+                ? 2
+                : 4
+
+    };
+
+    board[index] = tile;
+
+    if (spawn) {
+
+        createTile(
+            tile,
+            index,
+            true
+        );
+
+    }
+
+    return index;
+
+}
+
+
+/* =========================
+   RENDER INITIAL BOARD
+========================= */
+
+function renderInstant() {
+
+    for (let i = 0; i < 16; i++) {
+
+        if (board[i]) {
+
+            const tile =
+                board[i];
+
+            if (
+                !tileElements.has(
+                    tile.id
+                )
+            ) {
+
+                createTile(
+                    tile,
+                    i
+                );
+
+            }
+
+        }
+
+    }
+
+    updateScore();
+
+}
+
+
+/* =========================
+   UPDATE SCORE
+========================= */
+
+function updateScore() {
+
+    document.getElementById("score")
+        .textContent = score;
+
+    document.getElementById("best")
+        .textContent = best;
+
+}
+
+
+/* =========================
+   GET LINES
+========================= */
+
+function getLines(direction) {
+
+    const lines = [];
+
+    if (direction === "left") {
+
+        for (let row = 0; row < 4; row++) {
+
+            lines.push([
+                row * 4,
+                row * 4 + 1,
+                row * 4 + 2,
+                row * 4 + 3
+            ]);
+
+        }
+
+    }
+
+    else if (direction === "right") {
+
+        for (let row = 0; row < 4; row++) {
+
+            lines.push([
+                row * 4 + 3,
+                row * 4 + 2,
+                row * 4 + 1,
+                row * 4
+            ]);
+
+        }
+
+    }
+
+    else if (direction === "up") {
+
+        for (let col = 0; col < 4; col++) {
+
+            lines.push([
+                col,
+                col + 4,
+                col + 8,
+                col + 12
+            ]);
+
+        }
+
+    }
+
+    else if (direction === "down") {
+
+        for (let col = 0; col < 4; col++) {
+
+            lines.push([
+                col + 12,
+                col + 8,
+                col + 4,
+                col
+            ]);
+
+        }
+
+    }
+
+    return lines;
+
+}
+
+
+/* =========================
+   CALCULATE MOVE
+========================= */
+
+function calculateMove(direction) {
+
+    const newBoard =
+        Array(16).fill(null);
+
+    const removedIds = [];
+
+    const mergedIds = [];
+
+    const lines =
+        getLines(direction);
+
+
+    for (const line of lines) {
+
+        const existing =
+            line
+                .map(index => board[index])
+                .filter(Boolean);
+
+
+        const result = [];
+
+
+        for (
+            let i = 0;
+            i < existing.length;
+            i++
+        ) {
+
+            const current =
+                existing[i];
+
+            const next =
+                existing[i + 1];
+
+
+            if (
+                next &&
+                current.value === next.value
+            ) {
+
+                current.value *= 2;
+
+                score += current.value;
+
+                removedIds.push(
+                    next.id
+                );
+
+                mergedIds.push(
+                    current.id
+                );
+
+                result.push(current);
+
+                i++;
+
+            }
+
+            else {
+
+                result.push(current);
+
+            }
+
+        }
+
+
+        for (
+            let i = 0;
+            i < result.length;
+            i++
+        ) {
+
+            newBoard[
+                line[i]
+            ] = result[i];
+
+        }
+
+    }
+
+
+    const changed =
+        board.some(
+            (tile, index) => {
+
+                const next =
+                    newBoard[index];
+
+                if (!tile && !next)
+                    return false;
+
+                if (!tile || !next)
+                    return true;
+
+                return (
+                    tile.id !== next.id ||
+                    tile.value !== next.value
+                );
+
+            }
+        );
+
+
+    return {
+        newBoard,
+        changed,
+        removedIds,
+        mergedIds
+    };
+
+}
+
+
+/* =========================
+   MAKE MOVE
+========================= */
+
+function makeMove(direction) {
+
+    if (gameEnded) {
+
+        return;
+
+    }
+
+
+    const result =
+        calculateMove(direction);
+
+
+    if (!result.changed) {
+
+        return;
+
+    }
+
+
+    board =
+        result.newBoard;
+
+
+    /* Animate movement */
+
+    for (let i = 0; i < 16; i++) {
+
+        const tile =
+            board[i];
+
+        if (tile) {
+
+            updateTileElement(
+                tile,
+                i
+            );
+
+        }
+
+    }
+
+
+    /* Remove merged tiles */
+
+    setTimeout(() => {
+
+        result.removedIds.forEach(
+            id => {
+
+                const element =
+                    tileElements.get(id);
+
+                if (element) {
+
+                    element.remove();
+
+                    tileElements.delete(id);
+
+                }
+
+            }
+        );
+
+
+        /* Merge animation */
+
+        result.mergedIds.forEach(
+            id => {
+
+                const element =
+                    tileElements.get(id);
+
+                if (element) {
+
+                    element.classList.remove(
+                        "merge"
+                    );
+
+                    void element.offsetWidth;
+
+                    element.classList.add(
+                        "merge"
+                    );
+
+                }
+
+            }
+        );
+
+    }, 160);
+
+
+    /* Update best score */
+
+    if (score > best) {
+
+        best = score;
+
+        localStorage.setItem(
+            "gamevault2048Best",
+            best
+        );
+
+    }
+
+
+    updateScore();
+
+
+    /* Add new tile */
+
+    setTimeout(() => {
+
+        addTile(true);
+
+        updateScore();
+
+        checkWin();
+
+        if (!canMove()) {
+
+            gameEnded = true;
+
+            setTimeout(() => {
+
+                showMessage(
+                    "Game Over 💀",
+                    "No more moves!"
+                );
+
+            }, 180);
+
+        }
+
+    }, 165);
+
+}
+
+
+/* =========================
+   CHECK WIN
+========================= */
+
+function checkWin() {
+
+    if (won) {
+
+        return;
+
+    }
+
+    if (
+        board.some(
+            tile =>
+                tile &&
+                tile.value >= 2048
+        )
+    ) {
+
+        won = true;
+
+        setTimeout(() => {
+
+            showMessage(
+                "You Win! 🎉",
+                "You reached 2048!"
+            );
+
+        }, 180);
+
+    }
+
+}
+
+
+/* =========================
+   CHECK AVAILABLE MOVES
+========================= */
+
+function canMove() {
+
+    /* Empty spaces */
+
+    if (
+        board.some(
+            tile => tile === null
+        )
+    ) {
+
+        return true;
+
+    }
+
+
+    /* Horizontal */
+
+    for (let row = 0; row < 4; row++) {
+
+        for (let col = 0; col < 3; col++) {
+
+            const a =
+                board[row * 4 + col];
+
+            const b =
+                board[row * 4 + col + 1];
+
+            if (
+                a.value === b.value
+            ) {
+
+                return true;
+
+            }
+
+        }
+
+    }
+
+
+    /* Vertical */
+
+    for (let row = 0; row < 3; row++) {
+
+        for (let col = 0; col < 4; col++) {
+
+            const a =
+                board[row * 4 + col];
+
+            const b =
+                board[(row + 1) * 4 + col];
+
+            if (
+                a.value === b.value
+            ) {
+
+                return true;
+
+            }
+
+        }
+
+    }
+
+
+    return false;
+
+}
+
+
+/* =========================
+   MESSAGE
+========================= */
+
+function showMessage(
+    title,
+    text
+) {
+
+    document.getElementById(
+        "messageTitle"
+    ).textContent = title;
+
+
+    document.getElementById(
+        "messageText"
+    ).textContent = text;
+
+
+    document.getElementById(
+        "message"
+    ).style.display = "flex";
+
+}
+
+
+/* =========================
+   KEYBOARD CONTROLS
+========================= */
+
+document.addEventListener(
+    "keydown",
+    function(e) {
+
+        const keys = {
+
+            ArrowLeft: "left",
+            ArrowRight: "right",
+            ArrowUp: "up",
+            ArrowDown: "down",
+
+            a: "left",
+            d: "right",
+            w: "up",
+            s: "down",
+
+            A: "left",
+            D: "right",
+            W: "up",
+            S: "down"
+
+        };
+
+
+        if (
+            keys[e.key]
+        ) {
+
+            e.preventDefault();
+
+            makeMove(
+                keys[e.key]
+            );
+
+        }
+
+    }
+);
+
+
+/* =========================
+   MOBILE SWIPES
+========================= */
+
+let startX = 0;
+let startY = 0;
+
+
+boardElement.addEventListener(
+    "touchstart",
+    function(e) {
+
+        startX =
+            e.touches[0].clientX;
+
+        startY =
+            e.touches[0].clientY;
+
+    },
+    { passive: true }
+);
+
+
+boardElement.addEventListener(
+    "touchend",
+    function(e) {
+
+        const endX =
+            e.changedTouches[0].clientX;
+
+        const endY =
+            e.changedTouches[0].clientY;
+
+
+        const dx =
+            endX - startX;
+
+        const dy =
+            endY - startY;
+
+
+        if (
+            Math.abs(dx) < 30 &&
+            Math.abs(dy) < 30
+        ) {
+
+            return;
+
+        }
+
+
+        if (
+            Math.abs(dx) >
+            Math.abs(dy)
+        ) {
+
+            if (dx > 0) {
+
+                makeMove("right");
+
+            }
+
+            else {
+
+                makeMove("left");
+
+            }
+
+        }
+
+        else {
+
+            if (dy > 0) {
+
+                makeMove("down");
+
+            }
+
+            else {
+
+                makeMove("up");
+
+            }
+
+        }
+
+    },
+    { passive: true }
+);
+
+
+/* =========================
+   START
+========================= */
+
+newGame();
+
+</script>
+
+</body>
+</html>
