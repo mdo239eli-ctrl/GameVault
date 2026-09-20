@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snake - GameVault</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+    background: #0b0b0f;
+    color: white;
+    min-height: 100vh;
+    text-align: center;
+}
+
+header {
+    padding: 25px;
+    border-bottom: 1px solid #24242c;
+    background: #111116;
+}
+
+header h1 {
+    color: #7c5cff;
+}
+
+.back {
+    display: inline-block;
+    margin-top: 10px;
+    color: #aaa;
+    text-decoration: none;
+}
+
+.game {
+    margin: 35px auto;
+    max-width: 500px;
+}
+
+#score {
+    font-size: 24px;
+    margin-bottom: 15px;
+}
+
+canvas {
+    background: #141419;
+    border: 2px solid #292933;
+    border-radius: 12px;
+    width: 400px;
+    max-width: 90vw;
+}
+
+button {
+    margin-top: 20px;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 10px;
+    background: #7c5cff;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>🐍 Snake</h1>
+    <a class="back" href="index.html">← Back to GameVault</a>
+</header>
+
+<div class="game">
+
+    <div id="score">Score: 0</div>
+
+    <canvas id="game" width="400" height="400"></canvas>
+
+    <br>
+
+    <button onclick="restart()">Restart Game</button>
+
+    <p style="margin-top:15px;color:#888;">
+        Use the arrow keys to move
+    </p>
+
+</div>
+
+<script>
+
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+const grid = 20;
+let snake;
+let food;
+let direction;
+let nextDirection;
+let score;
+let gameOver;
+
+function restart() {
+
+    snake = [
+        {x: 200, y: 200},
+        {x: 180, y: 200},
+        {x: 160, y: 200}
+    ];
+
+    food = randomFood();
+
+    direction = {x: grid, y: 0};
+    nextDirection = direction;
+
+    score = 0;
+    gameOver = false;
+
+    document.getElementById("score").textContent = "Score: 0";
+}
+
+function randomFood() {
+
+    return {
+        x: Math.floor(Math.random() * (canvas.width / grid)) * grid,
+        y: Math.floor(Math.random() * (canvas.height / grid)) * grid
+    };
+
+}
+
+document.addEventListener("keydown", function(e) {
+
+    if (e.key === "ArrowUp" && direction.y === 0)
+        nextDirection = {x: 0, y: -grid};
+
+    if (e.key === "ArrowDown" && direction.y === 0)
+        nextDirection = {x: 0, y: grid};
+
+    if (e.key === "ArrowLeft" && direction.x === 0)
+        nextDirection = {x: -grid, y: 0};
+
+    if (e.key === "ArrowRight" && direction.x === 0)
+        nextDirection = {x: grid, y: 0};
+
+});
+
+function gameLoop() {
+
+    if (gameOver) return;
+
+    direction = nextDirection;
+
+    const head = {
+        x: snake[0].x + direction.x,
+        y: snake[0].y + direction.y
+    };
+
+    // Wall collision
+    if (
+        head.x < 0 ||
+        head.x >= canvas.width ||
+        head.y < 0 ||
+        head.y >= canvas.height
+    ) {
+        endGame();
+        return;
+    }
+
+    // Self collision
+    for (let part of snake) {
+
+        if (head.x === part.x && head.y === part.y) {
+            endGame();
+            return;
+        }
+
+    }
+
+    snake.unshift(head);
+
+    // Eat food
+    if (head.x === food.x && head.y === food.y) {
+
+        score++;
+
+        document.getElementById("score").textContent =
+            "Score: " + score;
+
+        food = randomFood();
+
+    } else {
+
+        snake.pop();
+
+    }
+
+    draw();
+
+}
+
+function draw() {
+
+    ctx.fillStyle = "#141419";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Food
+    ctx.fillStyle = "#ff4d6d";
+
+    ctx.fillRect(
+        food.x,
+        food.y,
+        grid - 2,
+        grid - 2
+    );
+
+    // Snake
+    ctx.fillStyle = "#7c5cff";
+
+    for (let part of snake) {
+
+        ctx.fillRect(
+            part.x,
+            part.y,
+            grid - 2,
+            grid - 2
+        );
+
+    }
+
+}
+
+function endGame() {
+
+    gameOver = true;
+
+    setTimeout(() => {
+
+        alert("Game Over! Score: " + score);
+
+    }, 50);
+
+}
+
+restart();
+
+setInterval(gameLoop, 100);
+
+</script>
+
+</body>
+</html>
